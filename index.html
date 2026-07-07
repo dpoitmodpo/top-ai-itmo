@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Расписание — ДПО «Топ-ИИ» | Университет ИТМО</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dark:#014189;
+    --blue:#0082E3;
+    --cyan:#00A7C8;
+    --violet:#684BF1;
+    --green:#0F935D;
+    --orange:#CC9006;
+    --gray:#8899A6;
+    --bg:#F4F7FB;
+    --card:#ffffff;
+    --text:#0E1B2C;
+    --muted:#5B6B7C;
+    --line:#E3EAF2;
+    --shadow:0 6px 24px rgba(1,65,137,.08);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:'Montserrat',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+
+  /* ===== Header ===== */
+  .header{
+    background:linear-gradient(135deg,#014189 0%,#0082E3 60%,#00A7C8 100%);
+    color:#fff;padding:32px 24px 28px;
+  }
+  .header-inner{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+  .logos img{height:44px;width:auto;background:#fff;padding:8px 14px;border-radius:10px}
+  .title-block h1{
+    font-weight:800;font-size:clamp(26px,3.4vw,40px);
+    letter-spacing:-.4px;line-height:1.1;margin-bottom:8px;
+  }
+  .title-block p{font-weight:500;opacity:.9;font-size:15px;letter-spacing:-.2px}
+  .back-btn{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.15);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.25);color:#fff;
+    padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;
+    transition:.2s;align-self:flex-start;
+  }
+  .back-btn:hover{background:rgba(255,255,255,.28)}
+
+  /* ===== Days nav ===== */
+  .days-nav{
+    position:sticky;top:0;z-index:10;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .days-scroll{
+    max-width:1200px;margin:0 auto;
+    display:flex;gap:8px;padding:14px 24px;
+    overflow-x:auto;scrollbar-width:thin;
+  }
+  .days-scroll::-webkit-scrollbar{height:6px}
+  .days-scroll::-webkit-scrollbar-thumb{background:#cfd8e3;border-radius:3px}
+  .day-btn{
+    flex:0 0 auto;border:none;cursor:pointer;
+    background:#fff;border:1.5px solid var(--line);
+    padding:10px 14px;border-radius:12px;
+    font-family:inherit;font-weight:700;font-size:13px;color:var(--text);
+    letter-spacing:-.2px;transition:.2s;
+    display:flex;flex-direction:column;align-items:center;gap:2px;min-width:72px;
+  }
+  .day-btn .dow{font-weight:500;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .day-btn:hover{border-color:var(--blue);color:var(--blue)}
+  .day-btn.active{
+    background:linear-gradient(135deg,var(--dark),var(--blue));
+    color:#fff;border-color:transparent;
+    box-shadow:0 6px 16px rgba(0,130,227,.3);
+  }
+  .day-btn.active .dow{color:rgba(255,255,255,.85)}
+
+  /* ===== Content ===== */
+  .content{max-width:1200px;margin:0 auto;padding:32px 24px 80px}
+  .day-panel{display:none;animation:fade .3s ease}
+  .day-panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .day-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    flex-wrap:wrap;gap:12px;margin-bottom:22px;
+  }
+  .day-head h2{
+    font-weight:800;font-size:clamp(22px,2.4vw,30px);
+    letter-spacing:-.4px;color:var(--dark);
+  }
+  .day-head .date-sub{color:var(--muted);font-weight:500;font-size:14px}
+
+  /* ===== Cards ===== */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    padding:20px 22px;box-shadow:var(--shadow);
+    border:1px solid var(--line);
+    border-left:5px solid var(--gray);
+    position:relative;transition:.25s;
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(1,65,137,.14)}
+  .card[data-mod="1"]{border-left-color:var(--dark)}
+  .card[data-mod="2"]{border-left-color:var(--blue)}
+  .card[data-mod="3"]{border-left-color:var(--cyan)}
+  .card[data-mod="4"]{border-left-color:var(--violet)}
+  .card[data-mod="5"]{border-left-color:var(--green)}
+  .card[data-mod="6"]{border-left-color:var(--orange)}
+  .card[data-mod="org"]{border-left-color:var(--gray);background:#F7FAFC}
+
+  .card-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .time{font-weight:700;font-size:15px;color:var(--text);letter-spacing:-.2px}
+  .mod-badge{
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
+    color:#fff;letter-spacing:.3px;text-transform:uppercase;
+  }
+  .mod-badge[data-m="1"]{background:var(--dark)}
+  .mod-badge[data-m="2"]{background:var(--blue)}
+  .mod-badge[data-m="3"]{background:var(--cyan)}
+  .mod-badge[data-m="4"]{background:var(--violet)}
+  .mod-badge[data-m="5"]{background:var(--green)}
+  .mod-badge[data-m="6"]{background:var(--orange)}
+  .mod-badge[data-m="org"]{background:var(--gray)}
+
+  .format-badge{
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
+    border:1.5px solid var(--line);color:var(--muted);
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .format-badge.online{border-color:#0082E3;color:#0082E3;background:rgba(0,130,227,.08)}
+  .format-badge.offline{border-color:#CC9006;color:#CC9006;background:rgba(204,144,6,.08)}
+  .format-badge.async{border-color:#684BF1;color:#684BF1;background:rgba(104,75,241,.08)}
+  .format-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  .card-title{
+    font-weight:700;font-size:16px;line-height:1.35;letter-spacing:-.3px;
+  }
+  .card[data-mod="1"] .card-title{color:var(--dark)}
+  .card[data-mod="2"] .card-title{color:var(--blue)}
+  .card[data-mod="3"] .card-title{color:var(--cyan)}
+  .card[data-mod="4"] .card-title{color:var(--violet)}
+  .card[data-mod="5"] .card-title{color:var(--green)}
+  .card[data-mod="6"] .card-title{color:var(--orange)}
+  .card[data-mod="org"] .card-title{color:var(--text)}
+
+  /* Speaker */
+  .speaker{display:flex;align-items:center;gap:12px;margin-top:4px}
+  .avatar{
+    width:40px;height:40px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:13px;letter-spacing:.3px;
+    flex:0 0 auto;
+  }
+  .avatar[data-m="1"]{background:var(--dark)}
+  .avatar[data-m="2"]{background:var(--blue)}
+  .avatar[data-m="3"]{background:var(--cyan)}
+  .avatar[data-m="4"]{background:var(--violet)}
+  .avatar[data-m="5"]{background:var(--green)}
+  .avatar[data-m="6"]{background:var(--orange)}
+  .avatar[data-m="org"]{background:var(--gray)}
+  .speaker-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .speaker-name{font-weight:700;font-size:14px;color:var(--text);letter-spacing:-.2px}
+  .speaker-role{font-size:12px;color:var(--muted);line-height:1.35}
+
+  /* Multi-speaker */
+  .speakers{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .speakers .speaker{margin-top:0}
+
+  /* Location tag */
+  .location{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--muted);font-weight:500;
+    margin-top:2px;
+  }
+  .location::before{content:"📍";font-size:12px}
+
+  /* ===== Responsive ===== */
+  @media (max-width:640px){
+    .header{padding:24px 16px}
+    .logos img{height:36px;padding:6px 10px}
+    .content{padding:20px 16px 60px}
+    .days-scroll{padding:12px 16px}
+    .day-btn{min-width:60px;padding:8px 10px;font-size:12px}
+    .cards{grid-template-columns:1fr;gap:14px}
+    .card{padding:16px 18px}
+    .card-title{font-size:15px}
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logos"><img src="logos.png" alt="Минцифры · Аналитический центр · ИТМО"></div>
+    <div class="title-block">
+      <h1>Расписание программы «Преподавание современного ИИ на топ-уровне: системное видение (ППС старших курсов)»</h1>
+      <p>6 – 31 июля 2026 · 6 модулей · 20 учебных дней</p>
+    </div>
+  </div>
+</header>
+
+<nav class="days-nav">
+  <div class="days-scroll" id="daysScroll">
+    <!-- кнопки дней вставляются JS -->
+  </div>
+</nav>
+
+<main class="content" id="content">
+  <!-- панели дней вставляются JS -->
+</main>
+
+<script>
+/* ============ ДАННЫЕ РАСПИСАНИЯ ============ */
+const DAYS = [
+  {
+    date:"06.07", dow:"Пн", full:"6 июля 2026, понедельник",
+    items:[
+      {t:"15:30–16:00",f:"online",m:"org",code:"орг.",title:"Приветственные слова",
+       speakers:[
+         {n:"Анастасия Казанцева",r:"заместитель директора Департамента развития цифровых компетенций и образования, Минцифры РФ"},
+         {n:"Сергей Астахов",r:"руководитель Центра экспертизы образовательных программ АНО «Аналитический центр при Правительстве РФ»"},
+         {n:"Александр Бухановский",r:"д.т.н., научный руководитель исследовательского центра «Сильный ИИ в промышленности» Университета ИТМО"}
+       ]},
+      {t:"16:00–17:30",f:"online",m:"1",code:"1.1",title:"Конструирование и разработка учебных дисциплин в сфере ИИ на основе КРМ",
+       speakers:[{n:"Александр Бухановский",r:"д.т.н., научный руководитель исследовательского центра «Сильный ИИ в промышленности» Университета ИТМО"}]},
+      {t:"17:30–18:00",f:"online",m:"org",code:"орг.",title:"Особенности организации программы ДПО",
+       speakers:[{n:"Александра Климова",r:"к.т.н., директор учебно-методического центра «Искусственный интеллект» Университета ИТМО"}]}
+    ]
+  },
+  {
+    date:"07.07", dow:"Вт", full:"7 июля 2026, вторник",
+    items:[
+      {t:"10:00–11:30",f:"online",m:"1",code:"1.3",title:"Преподавание современного ИИ: архитектуры, математика, оптимизация (компетенции КРМ MF1–MF6, O2–O3, FC1)",
+       speakers:[{n:"Александр Хватов",r:"к.ф.-м.н., старший научный сотрудник, центр «Сильный ИИ в промышленности» Университета ИТМО"}]},
+      {t:"11:40–13:10",f:"online",m:"1",code:"1.4",title:"Преподавание современного ИИ: машинное обучение (компетенции КРМ ML2–ML8)",
+       speakers:[{n:"Петр Гладилин",r:"к.т.н., инженер ключевых проектов ООО «Техкампания Хуавей»"}]}
+    ]
+  },
+  {
+    date:"08.07", dow:"Ср", full:"8 июля 2026, среда",
+    items:[
+      {t:"10:00–11:30",f:"online",m:"1",code:"1.5",title:"Преподавание современного ИИ: глубокое обучение (компетенции КРМ DL1–DL5)",
+       speakers:[{n:"Али Аммар",r:"к.т.н., разработчик-эксперт ООО «Центр искусственного интеллекта МВС»"}]},
+      {t:"11:40–13:10",f:"online",m:"1",code:"1.6",title:"Преподавание современного ИИ: большие языковые модели, агенты и ГенИИ (компетенции КРМ LLM1–LLM5, FC2–FC3)",
+       speakers:[{n:"Анна Калюжная",r:"к.т.н., старший менеджер программы продвинутой аналитики и ИИ, ПАО «Газпром нефть»"}]}
+    ]
+  },
+  {
+    date:"09.07", dow:"Чт", full:"9 июля 2026, четверг",
+    items:[
+      {t:"10:00–11:30",f:"online",m:"5",code:"5.1",title:"Практики создания учебно-методических материалов в сфере ИИ на основе КРМ с использованием агентных технологий ИИ",
+       speakers:[{n:"Алексей Духанов",r:"д.т.н., ведущий научный сотрудник, центр «Сильный ИИ в промышленности», доцент ФТИИ Университета ИТМО"}]},
+      {t:"11:40–13:10",f:"online",m:"5",code:"5.2",title:"Разработка РПД и комплексного фонда оценочных средств на основе КРМ: установочная сессия",
+       speakers:[{n:"Александр Бухановский",r:"д.т.н., научный руководитель исследовательского центра «Сильный ИИ в промышленности» Университета ИТМО"}]}
+    ]
+  },
+  {
+    date:"10.07", dow:"Пт", full:"10 июля 2026, пятница",
+    items:[
+      {t:"В течение дня",f:"online",m:"5",code:"5.3",title:"День проектной работы, в том числе 2 а.ч. консультация с куратором (РПД)",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"13.07", dow:"Пн", full:"13 июля 2026, понедельник",
+    items:[
+      {t:"10:00–11:30",f:"online",m:"1",code:"1.2",title:"Оценка учебных дисциплин и ассесмент результатов обучения в сфере ИИ на основе КРМ",
+       speakers:[{n:"Денис Кустов",r:"руководитель направления развития образовательных программ бакалавриата; операционный руководитель Образовательного центра по ИИ МФТИ"}]},
+      {t:"11:40–13:10",f:"online",m:"2",code:"2.2",title:"Формы и практические кейсы взаимодействия вуза и компании в рамках приказа Минцифры №270 от 31.03.2026 (об ИТ-льготах)",
+       speakers:[{n:"Меруерт Нурышева",r:"старший менеджер ООО «ИТМО.ИСКИН»"}]},
+      {t:"в течение дня",f:"async",m:"2",code:"2.1",title:"Привлечение финансирования от бизнеса и государства в сфере ИИ в вуз",
+       speakers:[{n:"Александр Бухановский",r:"д.т.н., научный руководитель исследовательского центра «Сильный ИИ в промышленности» Университета ИТМО"}]},
+      {t:"в течение дня",f:"async",m:"2",code:"2.3",title:"Практики выполнения заказных НИОКТР в сфере ИИ по заказу индустрии: трансформация в учебные кейсы на основе КРМ",
+       speakers:[{n:"Денис Насонов",r:"к.т.н., старший научный сотрудник, центр «Сильный ИИ в промышленности», доцент ФТИИ Университета ИТМО"}]}
+    ]
+  },
+  {
+    date:"14.07", dow:"Вт", full:"14 июля 2026, вторник",
+    items:[
+      {t:"10:00–13:10",f:"online",m:"2",code:"2.4",title:"Взаимодействие бизнеса с вузами в сфере ИИ: взгляд от индустрии и сессия «вопрос-ответ»",
+       speakers:[]},
+      {t:"В течение дня",f:"online",m:"5",code:"5.3",title:"День проектной работы, в том числе 2 а.ч. консультация с куратором (РПД)",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"15.07", dow:"Ср", full:"15 июля 2026, среда",
+    items:[
+      {t:"11:00–13:00",f:"online",m:"5",code:"5.4",title:"Промежуточная аттестация результатов обучения: представление концепции РПД перед экспертами (поток 1)",
+       speakers:[]},
+      {t:"13:15–15:15",f:"online",m:"5",code:"5.4",title:"Промежуточная аттестация результатов обучения: представление концепции РПД перед экспертами (поток 2)",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"16.07", dow:"Чт", full:"16 июля 2026, четверг",
+    items:[
+      {t:"10:00–11:30",f:"online",m:"3",code:"3.1",title:"ИИ-разработка ПО: основные подходы и доступный инструментарий",
+       speakers:[{n:"Сергей Иванов",r:"к.т.н., старший научный сотрудник, центр «Сильный ИИ в промышленности», доцент ФТИИ Университета ИТМО"}]},
+      {t:"11:45–13:15",f:"online",m:"3",code:"3.2",title:"ИИ-разработка ПО: применение в учебном процессе для подготовки ИИ-специалистов",
+       speakers:[{n:"Иван Ходненко",r:"к.т.н., старший научный сотрудник «Национального центра когнитивных разработок», старший преподаватель ФТИИ Университета ИТМО"}]},
+      {t:"в течение дня",f:"async",m:"3",code:"3.4",title:"Создание инфраструктуры для аппаратного воплощения ИИ",
+       speakers:[{n:"Илья Ревин",r:"к.т.н., руководитель группы разработки ООО «ИТМО.ИСКИН»"}]}
+    ]
+  },
+  {
+    date:"17.07", dow:"Пт", full:"17 июля 2026, пятница",
+    items:[
+      {t:"в течение дня",f:"async",m:"3",code:"3.3",title:"Культура и экосистема открытого кода в сфере ИИ в вузе",
+       speakers:[{n:"Николай Никитин",r:"к.т.н., старший научный сотрудник, центр «Сильный ИИ в промышленности», доцент ФТИИ Университета ИТМО"}]},
+      {t:"В течение дня",f:"online",m:"5",code:"5.5",title:"День проектной работы, в том числе 2 а.ч. консультация с куратором (ФОС)",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"20.07", dow:"Пн", full:"20 июля 2026, понедельник",
+    items:[
+      {t:"в течение дня",f:"async",m:"3",code:"3.5",title:"Особенности использования суперкомпьютерных, распределённых, облачных инфраструктур для обучения в сфере ИИ",
+       speakers:[{n:"Артём Береснев",r:"к.т.н., старший преподаватель, заместитель декана факультета прикладной информатики Университета ИТМО"}]},
+      {t:"11:40–13:10",f:"online",m:"3",code:"3.6",title:"ИИ-ассистенты в образовании: демонстрация практических кейсов и сессия «вопрос-ответ»",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"21.07", dow:"Вт", full:"21 июля 2026, вторник",
+    items:[
+      {t:"10:00–10:45",f:"online",m:"4",code:"4.2",title:"Организация молодёжных учебно-научных лабораторий в сфере ИИ",
+       speakers:[{n:"Юлия Борисова",r:"к.т.н., младший научный сотрудник, центр «Сильный ИИ в промышленности», ассистент ФТИИ Университета ИТМО"}]},
+      {t:"10:55–12:25",f:"online",m:"4",code:"4.3",title:"Вовлечение обучаемых в сфере ИИ в подготовку публикаций уровня А*/Q1",
+       speakers:[
+         {n:"Юлия Борисова",r:"к.т.н., младший научный сотрудник, центр «Сильный ИИ в промышленности», ассистент ФТИИ Университета ИТМО"},
+         {n:"Александра Климова",r:"к.т.н., директор УМЦ «Искусственный интеллект», доцент ФТИИ Университета ИТМО"}
+       ]},
+      {t:"в течение дня",f:"async",m:"4",code:"4.1",title:"Современные образовательные практики в ИИ: взгляд от индустрии",
+       speakers:[{n:"Михаил Граденко",r:"директор департамента технологий искусственного интеллекта"}]}
+    ]
+  },
+  {
+    date:"22.07", dow:"Ср", full:"22 июля 2026, среда",
+    items:[
+      {t:"10:00–10:45",f:"online",m:"4",code:"4.4",title:"Выездные мероприятия для обучаемых в сфере ИИ: конференции, школы, визиты к индустриальным партнёрам",
+       speakers:[{n:"Толстиков",r:"спикер модуля"}]},
+      {t:"10:55–11:40",f:"online",m:"4",code:"4.5",title:"Организация проектно-соревновательной деятельности обучаемых в форме хакатонов",
+       speakers:[{n:"Меруерт Нурышева",r:"старший менеджер ООО «ИТМО.ИСКИН»"}]},
+      {t:"в течение дня",f:"online",m:"5",code:"5.5",title:"День консультаций с куратором (2 а.ч. консультация с куратором, ФОС)",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"23.07", dow:"Чт", full:"23 июля 2026, четверг",
+    items:[
+      {t:"11:40–13:10",f:"online",m:"4",code:"4.6",title:"Нестандартные практики обучения в сфере ИИ: кейсы вузов и сессия «вопрос-ответ»",
+       speakers:[{n:"Все спикеры модуля",r:"панельная дискуссия"}]}
+    ]
+  },
+  {
+    date:"24.07", dow:"Пт", full:"24 июля 2026, пятница",
+    items:[
+      {t:"10:00–11:30",f:"online",m:"5",code:"5.6",title:"Кросс-валидация результатов проектной работы группами обучаемых",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"27.07", dow:"Пн", full:"27 июля 2026, понедельник · Очно",
+    items:[
+      {t:"10:00–10:30",f:"offline",m:"org",code:"орг.",title:"Приветственный кофе",loc:"ИТМО, ул. Ломоносова, д. 9",speakers:[]},
+      {t:"10:30–12:00",f:"offline",m:"6",code:"6.1",title:"Ключевые направления и основные тренды развития ИИ (обобщающая лекция)",loc:"ИТМО, ул. Ломоносова, д. 9",
+       speakers:[{n:"Юрий Визильтер",r:"спикер обобщающей лекции"}]},
+      {t:"12:10–13:40",f:"offline",m:"6",code:"6.2",title:"Современный ИИ в образовании (обобщающая лекция)",loc:"ИТМО, ул. Ломоносова, д. 9",
+       speakers:[{n:"Александр Бухановский",r:"д.т.н., научный руководитель исследовательского центра «Сильный ИИ в промышленности» Университета ИТМО"}]},
+      {t:"14:00–15:00",f:"offline",m:"org",code:"орг.",title:"Кофе-брейк",loc:"ИТМО, ул. Ломоносова, д. 9",speakers:[]},
+      {t:"15:00–16:30",f:"offline",m:"5",code:"5.7",title:"Подготовка к защите результатов на основе ИИ-симуляции профессиональной экспертизы",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"28.07", dow:"Вт", full:"28 июля 2026, вторник · Очно",
+    items:[
+      {t:"10:00–10:30",f:"offline",m:"org",code:"орг.",title:"Кофе",speakers:[]},
+      {t:"10:30–12:00",f:"offline",m:"6",code:"6.3",title:"Консультации и групповая работа с куратором, подготовка к аттестации",
+       speakers:[{n:"Фасилитаторы",r:"групповая работа"}]},
+      {t:"13:00–14:00",f:"offline",m:"org",code:"орг.",title:"Кофе-брейк / обед",speakers:[]},
+      {t:"14:00–16:00",f:"offline",m:"6",code:"6.4",title:"Визит в компанию / групповая работа (экскурсия в ИТ-компанию)",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"29.07", dow:"Ср", full:"29 июля 2026, среда · Очно",
+    items:[
+      {t:"10:00–10:30",f:"offline",m:"org",code:"орг.",title:"Кофе",speakers:[]},
+      {t:"10:30–12:00",f:"offline",m:"6",code:"6.3",title:"Консультации и групповая работа с куратором, подготовка к аттестации",
+       speakers:[{n:"Фасилитаторы",r:"групповая работа"}]},
+      {t:"13:00–14:00",f:"offline",m:"org",code:"орг.",title:"Кофе-брейк / обед",speakers:[]},
+      {t:"14:00–16:00",f:"offline",m:"6",code:"6.4",title:"Визит в компанию / групповая работа (экскурсия в ИТ-компанию)",
+       speakers:[]}
+    ]
+  },
+  {
+    date:"30.07", dow:"Чт", full:"30 июля 2026, четверг · Очно",
+    items:[
+      {t:"09:30–10:00",f:"offline",m:"org",code:"орг.",title:"Кофе",speakers:[]},
+      {t:"10:00–13:00",f:"offline",m:"6",code:"6.5",title:"Круглый стол: публичная защита результатов проектной работы",loc:"ИТМО, ул. Ломоносова, д. 9",
+       speakers:[{n:"Эксперты",r:"публичная защита"}]},
+      {t:"13:00–14:00",f:"offline",m:"org",code:"орг.",title:"Кофе-брейк / обед",speakers:[]},
+      {t:"14:00–17:00",f:"offline",m:"6",code:"6.5",title:"Круглый стол: публичная защита результатов проектной работы",loc:"ИТМО, ул. Ломоносова, д. 9",
+       speakers:[{n:"Эксперты",r:"публичная защита"}]}
+    ]
+  },
+  {
+    date:"31.07", dow:"Пт", full:"31 июля 2026, пятница · Очно",
+    items:[
+      {t:"09:30–10:00",f:"offline",m:"org",code:"орг.",title:"Кофе",speakers:[]},
+      {t:"10:00–13:00",f:"offline",m:"6",code:"6.5",title:"Круглый стол: публичная защита результатов проектной работы",loc:"ИТМО, ул. Ломоносова, д. 9",
+       speakers:[{n:"Эксперты",r:"публичная защита"}]},
+      {t:"13:00–14:00",f:"offline",m:"org",code:"орг.",title:"Кофе-брейк / обед",speakers:[]},
+      {t:"14:00–17:00",f:"offline",m:"6",code:"6.5",title:"Круглый стол: публичная защита результатов проектной работы",loc:"ИТМО, ул. Ломоносова, д. 9",
+       speakers:[{n:"Эксперты",r:"публичная защита"}]},
+      {t:"18:30–21:00",f:"offline",m:"org",code:"орг.",title:"Нетворкинг (в лофте)",speakers:[]}
+    ]
+  }
+];
+
+/* ============ РЕНДЕР ============ */
+const MOD_NAMES = {
+  "1":"Модуль 1","2":"Модуль 2","3":"Модуль 3",
+  "4":"Модуль 4","5":"Модуль 5","6":"Модуль 6","org":"Орг."
+};
+const FORMAT_LABEL = {online:"Онлайн",offline:"Очно",async:"Асинхрон"};
+
+function initials(name){
+  if(!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if(parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function renderSpeaker(s, m){
+  return `
+    <div class="speaker">
+      <div class="avatar" data-m="${m}">${initials(s.n)}</div>
+      <div class="speaker-info">
+        <div class="speaker-name">${s.n}</div>
+        ${s.r ? `<div class="speaker-role">${s.r}</div>` : ""}
+      </div>
+    </div>`;
+}
+
+function renderCard(it){
+  const speakersBlock = it.speakers && it.speakers.length
+    ? `<div class="speakers">${it.speakers.map(s=>renderSpeaker(s,it.m)).join("")}</div>`
+    : "";
+  const loc = it.loc ? `<div class="location">${it.loc}</div>` : "";
+  return `
+    <article class="card" data-mod="${it.m}">
+      <div class="card-top">
+        <span class="time">${it.t}</span>
+        <span class="format-badge ${it.f}">${FORMAT_LABEL[it.f]}</span>
+        <span class="mod-badge" data-m="${it.m}">${it.code}</span>
+      </div>
+      <div class="card-title">${it.title}</div>
+      ${loc}
+      ${speakersBlock}
+    </article>`;
+}
+
+function renderDay(day, idx){
+  return `
+    <section class="day-panel" data-idx="${idx}">
+      <div class="day-head">
+        <h2>${day.full}</h2>
+        <span class="date-sub">${day.items.length} ${day.items.length===1?"событие":"событий"} в программе</span>
+      </div>
+      <div class="cards">${day.items.map(renderCard).join("")}</div>
+    </section>`;
+}
+
+/* ============ ИНИЦИАЛИЗАЦИЯ ============ */
+const scroll = document.getElementById("daysScroll");
+const content = document.getElementById("content");
+
+scroll.innerHTML = DAYS.map((d,i)=>`
+  <button class="day-btn ${i===0?"active":""}" data-idx="${i}">
+    <span>${d.date}</span>
+    <span class="dow">${d.dow}</span>
+  </button>`).join("");
+
+content.innerHTML = DAYS.map(renderDay).join("");
+
+scroll.querySelectorAll(".day-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    scroll.querySelectorAll(".day-btn").forEach(b=>b.classList.remove("active"));
+    content.querySelectorAll(".day-panel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    content.querySelector(`.day-panel[data-idx="${btn.dataset.idx}"]`).classList.add("active");
+  });
+});
+
+/* Активируем первый день */
+content.querySelector('.day-panel[data-idx="0"]').classList.add("active");
+</script>
+</body>
+</html>
